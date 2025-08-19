@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MqttPub.Pages.AppAction.CreateAppActionPage"
+             xmlns:viewmodel="clr-namespace:MqttPub.ViewModels.AppActionModels.Create"
+             x:DataType="viewmodel:CreateAppActionViewModel"
+             Title="Create App Action">
+    <VerticalStackLayout Padding="20">
+        <Label Text="Name" />
+        <Entry Text="{Binding AppActionSave.Name}" />
+
+        <Picker
+            Title="MQTT Action"
+            ItemsSource="{Binding MqttActions}"
+            ItemDisplayBinding="{Binding DisplayName}"
+            SelectedItem="{Binding SelectedMqttAction}" />
+
+        <Button
+            Text="Add action"
+            Command="{Binding AddMqttActionCommand}" IsEnabled="{Binding SelectedMqttActionIsValid}"></Button>
+        
+        <CollectionView 
+            CanReorderItems="True"
+            ItemsSource="{Binding AppActionSave.MqttActions}">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="viewmodel:CreateAppActionMqttActionSaveViewModel">
+                    <Grid Padding="0,5">
+                        <Border>
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Label Text="{Binding Order}" VerticalOptions="Center" Padding="10"/>
+                                <Label Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Fill" Text="{Binding MqttAction.Name}" FontSize="16" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Text="Save"
+            Command="{Binding SaveCommand}" 
+            Margin="0,20,0,0"
+            HorizontalOptions="Fill"/>
+    </VerticalStackLayout>
+</ContentPage>

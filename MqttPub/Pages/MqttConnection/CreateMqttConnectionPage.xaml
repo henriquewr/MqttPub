@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MqttPub.Pages.MqttConnection.CreateMqttConnectionPage"
+             xmlns:viewmodel="clr-namespace:MqttPub.ViewModels.MqttConnectionModels.Create"
+             x:DataType="viewmodel:CreateMqttConnectionViewModel"
+             Title="Create Mqtt connection">
+
+    <VerticalStackLayout Padding="20">
+
+        <Label Text="Broker address" />
+        <Entry Text="{Binding BrokerAddress}" />
+
+        <Label Text="Topic" />
+        <Entry Text="{Binding Topic}" />
+
+        <Label Text="Client Id" />
+        <Entry Text="{Binding ClientId}" />
+
+        <Label Text="Port" />
+        <Entry Text="{Binding Port}" Keyboard="Numeric" />
+
+        <Button Text="Save"
+                Command="{Binding SaveCommand}"
+                Margin="0,20,0,0"
+                HorizontalOptions="Fill"/>
+
+    </VerticalStackLayout>
+</ContentPage>

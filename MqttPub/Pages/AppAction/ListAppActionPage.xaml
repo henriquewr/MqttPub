@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MqttPub.Pages.AppAction.ListAppActionPage"
+             xmlns:viewmodel="clr-namespace:MqttPub.ViewModels.AppActionModels.List"
+             x:DataType="viewmodel:ListAppActionViewModel"
+             Title="List App Action Page">
+    
+    <VerticalStackLayout Padding="20">
+
+        <Button Text="Create App action"
+                Command="{Binding CreateAppActionCommand}"
+                Margin="0,20,0,0"
+                HorizontalOptions="End"/>
+
+        <CollectionView ItemsSource="{Binding AppActions}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="viewmodel:ListAppActionItemViewModel">
+                    <Grid Padding="0,5">
+                        <Border>
+                            <Grid ColumnDefinitions="*, Auto" Padding="10">
+                                <Label VerticalOptions="Center" Text="{Binding DisplayName}" FontSize="16" />
+                                <Button Grid.Column="1"
+                                        VerticalOptions="Center" 
+                                        Text="Edit"
+                                        Command="{Binding EditAppActionCommand, Source={RelativeSource AncestorType={x:Type viewmodel:ListAppActionViewModel}}}" 
+                                        CommandParameter="{Binding .}">
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </VerticalStackLayout>
+</ContentPage>
