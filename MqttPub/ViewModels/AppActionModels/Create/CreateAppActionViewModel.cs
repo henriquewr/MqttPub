@@ -128,6 +128,12 @@ namespace MqttPub.ViewModels.AppActionModels.Create
         }
 
         [RelayCommand]
+        public void RemoveMqttAction(CreateAppActionMqttActionSaveViewModel appAction)
+        {
+            AppActionSave.MqttActions.Remove(appAction);
+        }
+
+        [RelayCommand]
         public async Task Save()
         {
             if (!AppActionSave.IsValid())

@@ -117,6 +117,12 @@ namespace MqttPub.ViewModels.MqttActionModels.Create
         }
 
         [RelayCommand]
+        public void RemoveMqttMessage(CreateMqttMessageSaveViewModel mqttMessage)
+        {
+            MqttActionSave.MqttMessages.Remove(mqttMessage);
+        }
+
+        [RelayCommand]
         public async Task Save()
         {
             if (!MqttActionSave.IsValid())

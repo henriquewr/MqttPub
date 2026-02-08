@@ -17,7 +17,7 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="viewmodel:ListAppActionItemViewModel">
                     <Grid Padding="0,5">
-                        <Border>
+                        <Border StrokeShape="RoundRectangle 5">
                             <Grid ColumnDefinitions="*, Auto" Padding="10">
                                 <Label VerticalOptions="Center" Text="{Binding DisplayName}" FontSize="16" />
                                 <Button Grid.Column="1"

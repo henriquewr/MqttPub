@@ -26,10 +26,23 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="viewmodel:CreateAppActionMqttActionSaveViewModel">
                     <Grid Padding="0,5">
-                        <Border>
-                            <Grid ColumnDefinitions="Auto,*">
+                        <Border StrokeShape="RoundRectangle 5">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
                                 <Label Text="{Binding Order}" VerticalOptions="Center" Padding="10"/>
                                 <Label Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Fill" Text="{Binding MqttAction.Name}" FontSize="16" />
+                                <Button Grid.Column="2"
+                                    VerticalOptions="Center"
+                                    HeightRequest="40"
+                                    WidthRequest="40"
+                                    Margin="10,10,10,10"
+                                    Text="✕"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    BackgroundColor="Red"
+                                    TextColor="White"
+                                    Command="{Binding RemoveMqttActionCommand, Source={RelativeSource AncestorType={x:Type viewmodel:CreateAppActionViewModel}}}"
+                                    CommandParameter="{Binding .}">
+                                </Button>
                             </Grid>
                         </Border>
                     </Grid>
