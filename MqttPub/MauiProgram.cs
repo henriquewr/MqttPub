@@ -1,14 +1,9 @@
-﻿using Android.Content;
-using CachedEfCore.Cache;
-using CachedEfCore.Cache.Helper;
-using CachedEfCore.ExpressionKeyGen;
-using CachedEfCore.Interceptors;
-using CachedEfCore.SqlAnalysis;
-using Microsoft.EntityFrameworkCore;
+﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
-using MQTTnet;
-using MqttPub.Data;
-using MqttPub.Services.MqttPub;
+using MqttPub.Application.DependencyInjection;
+using MqttPub.Infrastructure;
+using MqttPub.Infrastructure.DependencyInjection;
+using MqttPub.Infrastructure.Initialization;
 using MqttPub.ViewModels;
 using MqttPub.ViewModels.AppActionModels.Create;
 using MqttPub.ViewModels.AppActionModels.List;
@@ -27,6 +22,7 @@ namespace MqttPub
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -36,23 +32,12 @@ namespace MqttPub
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
-            builder.Services.AddMemoryCache();
-            builder.Services.AddSingleton<KeyGeneratorVisitor>();
-            builder.Services.AddSingleton<IDbQueryCacheHelper, DbQueryCacheHelper>();
-            builder.Services.AddSingleton<IDbQueryCacheStore, DbQueryCacheStore>();
-            builder.Services.AddSingleton<ISqlQueryEntityExtractor, GenericSqlQueryEntityExtractor>();
-            builder.Services.AddSingleton<DbStateInterceptor>();
 
-            builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
-            {
-                options.UseSqlite("Data Source=" + Path.Combine(FileSystem.AppDataDirectory, AppDbContext.DbName)).AddInterceptors(serviceProvider.GetRequiredService<DbStateInterceptor>()); 
-            });
+            builder.Services.AddApplicationServices();
+
+            builder.Services.AddInfrastructureServices(Path.Combine(FileSystem.AppDataDirectory, AppDbContext.DbName));
 
             RegisterPages(builder.Services);
-
-            builder.Services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
-            builder.Services.AddSingleton<MqttClientFactory>();
-            builder.Services.AddTransient<IMqttPublisher, MqttPublisher>();
 
             var builtBuilder = builder.Build();
             ApplyDatabasesMigrations(builtBuilder.Services);
@@ -78,9 +63,9 @@ namespace MqttPub
             const string migrationKey = "AppliedMigration";
 
             var version = Assembly
-            .GetExecutingAssembly()
-            .GetName()
-            .Version?.ToString() ?? AppInfo.VersionString;
+                .GetExecutingAssembly()
+                .GetCustomAttributes<AssemblyMetadataAttribute>()
+                .First(m => m.Key == "BuildId").Value;
 
             if (Preferences.Get(migrationKey, "") == version)
             {
@@ -88,7 +73,8 @@ namespace MqttPub
             }
 
             var context = serviceProvider.GetRequiredService<AppDbContext>();
-            context.Database.Migrate();
+
+            InitilizeDbContext.Initialize(context);
 
             Preferences.Set(migrationKey, version);
         }

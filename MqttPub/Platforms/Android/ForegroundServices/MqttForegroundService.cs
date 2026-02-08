@@ -2,7 +2,7 @@
 using Android.Content;
 using Android.OS;
 using AndroidX.Core.App;
-using MqttPub.Services.MqttPub;
+using MqttPub.Application.Services.MqttPub.Abstractions;
 
 namespace MqttPub.Platforms.Android.ForegroundServices
 {

@@ -1,16 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MqttPub.Data;
-using MqttPub.Data.Entities;
+using MqttPub.Application.Services.MqttConnections.Abstractions;
+using MqttPub.Application.Services.MqttConnections.Abstractions.ContractModels;
 
 namespace MqttPub.ViewModels.MqttConnectionModels.Create
 {
-    public partial class CreateMqttConnectionViewModel : ObservableObject
+    public partial class CreateMqttConnectionViewModel : ObservableObject, ICreateMqttConnectionModel, IUpdateMqttConnectionModel
     {
-        private readonly IRepository<MqttConnection> _mqttConnectionRepository;
-        public CreateMqttConnectionViewModel(IRepository<MqttConnection> mqttConnectionRepository)
+        private readonly IMqttConnectionService _mqttConnectionService;
+        public CreateMqttConnectionViewModel(IMqttConnectionService mqttConnectionService)
         {
-            _mqttConnectionRepository = mqttConnectionRepository;
+            _mqttConnectionService = mqttConnectionService;
         }
 
         public async Task LoadMqttConnection(int id)
@@ -22,13 +22,7 @@ namespace MqttPub.ViewModels.MqttConnectionModels.Create
                     Shell.Current.CurrentPage.IsBusy = true;
                 });
 
-                var mqttConnection = await _mqttConnectionRepository.SelectFirstAsync(x => x.Id == id, x => new
-                {
-                    x.BrokerAddress,
-                    x.Topic,
-                    x.ClientId,
-                    x.Port,
-                });
+                var mqttConnection = await _mqttConnectionService.GetConnection(id);
 
                 BrokerAddress = mqttConnection!.BrokerAddress;
                 Topic = mqttConnection.Topic;
@@ -59,6 +53,12 @@ namespace MqttPub.ViewModels.MqttConnectionModels.Create
         [ObservableProperty]
         public partial int Port { get; set; } = 1883;
 
+        int IUpdateMqttConnectionModel.Id => Id!.Value;
+        string ISaveMqttConnectionModel.BrokerAddress => BrokerAddress!;
+        string ISaveMqttConnectionModel.Topic => Topic!;
+        string ISaveMqttConnectionModel.ClientId => ClientId!;
+        int ISaveMqttConnectionModel.Port => Port;
+
         private bool IsValid()
         {
             var isValid = string.IsNullOrEmpty(BrokerAddress) == false
@@ -76,40 +76,18 @@ namespace MqttPub.ViewModels.MqttConnectionModels.Create
                 return;
             }
 
-            MqttConnection mqttConnection;
-            
-            if (Id.HasValue)
-            {
-                mqttConnection = (await _mqttConnectionRepository.GetByIdAsync(Id.Value, false))!;
-
-                mqttConnection.BrokerAddress = BrokerAddress!;
-                mqttConnection.Topic = Topic!;
-                mqttConnection.ClientId = ClientId!;
-                mqttConnection.Port = Port;
-            }
-            else
-            {
-                mqttConnection = new()
-                {
-                    BrokerAddress = BrokerAddress!,
-                    Topic = Topic!,
-                    ClientId = ClientId!,
-                    Port = Port,
-                };
-            }
-
-            _mqttConnectionRepository.Update(mqttConnection);
-
             try
             {
-                await _mqttConnectionRepository.SaveChangesAsync();
+                await (Id.HasValue 
+                    ? _mqttConnectionService.Update(this) 
+                    : _mqttConnectionService.Create(this));
 
-                await Shell.Current.CurrentPage.DisplayAlert("Success!", $"The MqttConnection was {(Id.HasValue ? "updated" : "created")}", "Ok");
+                await Shell.Current.CurrentPage.DisplayAlertAsync("Success!", $"The MqttConnection was {(Id.HasValue ? "updated" : "created")}", "Ok");
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
-                await Shell.Current.CurrentPage.DisplayAlert("Error!", ex.Message, "Ok");
+                await Shell.Current.CurrentPage.DisplayAlertAsync("Error!", ex.Message, "Ok");
             }
         }
     }

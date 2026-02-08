@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace MqttPub
+namespace MqttPub.Platforms.MacCatalyst
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

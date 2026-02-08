@@ -1,17 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MqttPub.Application.Services.AppActions.Abstractions.ContractModels;
 using MqttPub.ViewModels.MqttActionModels;
 
 namespace MqttPub.ViewModels.AppActionModels.Create
 {
-    public partial class CreateAppActionMqttActionSaveViewModel : ObservableObject
+    public partial class CreateAppActionMqttActionSaveViewModel : ObservableObject, ICreateAppActionMqttAction, IUpdateAppActionMqttAction, IAppActionMqttActionModel<MqttActionMinimalViewModel>
     {
         [ObservableProperty]
         public partial int AppActionMqttActionId { get; set; }
 
         [ObservableProperty]
-        public required partial int Order { get; set; }
+        public partial int Order { get; set; }
 
         [ObservableProperty]
-        public required partial MqttActionMinimalViewModel MqttAction { get; set; }
+        public partial MqttActionMinimalViewModel MqttAction { get; set; }
+
+        int ISaveAppActionMqttAction.MqttActionId => MqttAction.Id;
     }
 }

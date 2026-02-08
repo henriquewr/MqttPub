@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="MqttPub.Application/MqttPub.Application.csproj" />
+  <Project Path="MqttPub.Infrastructure/MqttPub.Infrastructure.csproj" />
+  <Project Path="MqttPub.Domain/MqttPub.Domain.csproj" />
+  <Project Path="MqttPub/MqttPub.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

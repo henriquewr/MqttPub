@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MqttPub.Data;
-using MqttPub.Data.Entities;
+using MqttPub.Application.Services.MqttConnections.Abstractions;
 using MqttPub.Pages.MqttConnection;
 using System.Collections.ObjectModel;
 
@@ -9,14 +8,14 @@ namespace MqttPub.ViewModels.MqttConnectionModels.List
 {
     public partial class ListMqttConnectionViewModel : ObservableObject
     {
-        private readonly IRepository<MqttConnection> _mqttConnectionRepository;
+        private readonly IMqttConnectionService _mqttConnectionService;
 
         [ObservableProperty]
         public partial ObservableCollection<MqttConnectionViewModel> MqttConnections { get; set; } = new();
 
-        public ListMqttConnectionViewModel(IRepository<MqttConnection> mqttConnectionRepository)
+        public ListMqttConnectionViewModel(IMqttConnectionService mqttConnectionService)
         {
-            _mqttConnectionRepository = mqttConnectionRepository;
+            _mqttConnectionService = mqttConnectionService;
         }
         
         public async Task InitializeAsync()
@@ -27,12 +26,8 @@ namespace MqttPub.ViewModels.MqttConnectionModels.List
                 {
                     Shell.Current.CurrentPage.IsBusy = true;
                 });
-                var dataFromDb = await _mqttConnectionRepository.WhereSelectAsync(x => true, x => new MqttConnectionViewModel
-                {
-                    Id = x.Id,
-                    BrokerAddress = x.BrokerAddress,
-                    Topic = x.Topic,
-                });
+
+                var dataFromDb = await _mqttConnectionService.ListConnections<MqttConnectionViewModel>();
 
                 MqttConnections = new(dataFromDb);
             }

@@ -1,21 +1,22 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MqttPub.Application.Services.MqttActions.Abstractions.ContractModels;
 using MqttPub.ViewModels.MqttConnectionModels;
 
 namespace MqttPub.ViewModels.MqttActionModels.List
 {
-    public partial class ListMqttActionItemViewModel : ObservableObject
+    public partial class ListMqttActionItemViewModel : ObservableObject, IMqttActionItemModel<MqttConnectionViewModel>
     {
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DisplayName))]
-        public required partial int Id { get; set; }
+        public partial int Id { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DisplayName))]
-        public required partial string Name { get; set; }
+        public partial string Name { get; set; }
 
         public string DisplayName => $"{Name}, Connection: {MqttConnection.DisplayName}";
 
         [ObservableProperty]
-        public required partial MqttConnectionViewModel MqttConnection { get; set; }
+        public partial MqttConnectionViewModel MqttConnection { get; set; }
     }
 }

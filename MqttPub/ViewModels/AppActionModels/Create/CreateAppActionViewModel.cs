@@ -1,18 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MqttPub.Data;
-using MqttPub.Data.Entities;
+using MqttPub.Application.Services.AppActions.Abstractions;
+using MqttPub.Application.Services.AppActions.Abstractions.ContractModels;
+using MqttPub.Application.Services.AppActions.Implementations.Models;
+using MqttPub.Application.Services.MqttActions.Abstractions;
+using MqttPub.Domain.Entities;
 using MqttPub.ViewModels.MqttActionModels;
 using MqttPub.ViewModels.MqttActionModels.List;
+using MqttPub.ViewModels.MqttConnectionModels;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 
 namespace MqttPub.ViewModels.AppActionModels.Create
 {
     public partial class CreateAppActionViewModel : ObservableObject
     {
-        private readonly IRepository<AppActionEntity> _appActionRepository;
-        private readonly IRepository<MqttAction> _mqttActionRepository;
+        private readonly IAppActionService _appActionService;
+        private readonly IMqttActionService _mqttActionService;
 
         [ObservableProperty]
         public partial ObservableCollection<ListMqttActionItemViewModel> MqttActions { get; set; } = null!;
@@ -20,7 +25,7 @@ namespace MqttPub.ViewModels.AppActionModels.Create
         [ObservableProperty]
         public partial CreateAppActionSaveViewModel AppActionSave { get; set; }
 
-        public CreateAppActionViewModel(IRepository<AppActionEntity> appActionRepository, IRepository<MqttAction> mqttActionRepository)
+        public CreateAppActionViewModel(IAppActionService appActionService, IMqttActionService mqttActionService)
         {
             AppActionSave = new()
             {
@@ -29,8 +34,8 @@ namespace MqttPub.ViewModels.AppActionModels.Create
 
             AppActionSave.MqttActions.CollectionChanged += MqttActionsChanged;
 
-            _appActionRepository = appActionRepository;
-            _mqttActionRepository = mqttActionRepository;
+            _appActionService = appActionService;
+            _mqttActionService = mqttActionService;
         }
 
         private void MqttActionsChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -50,17 +55,7 @@ namespace MqttPub.ViewModels.AppActionModels.Create
                     Shell.Current.CurrentPage.IsBusy = true;
                 });
 
-                var mqttActions = await _mqttActionRepository.WhereSelectAsync(x => true, x => new ListMqttActionItemViewModel
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    MqttConnection = new()
-                    {
-                        Id = x.MqttConnectionId,
-                        BrokerAddress = x.MqttConnection.BrokerAddress,
-                        Topic = x.MqttConnection.Topic,
-                    },
-                });
+                var mqttActions = await _mqttActionService.ListMqttActions<ListMqttActionItemViewModel, MqttConnectionViewModel>();
 
                 MqttActions = new(mqttActions);
             }
@@ -82,23 +77,11 @@ namespace MqttPub.ViewModels.AppActionModels.Create
                     Shell.Current.CurrentPage.IsBusy = true;
                 });
 
-                var appAction = (await _appActionRepository.SelectFirstAsNoTrackingAsync(x => x.Id == id, x => new
-                {
-                    x.Name,
-                    MqttActions = x.MqttActions.OrderBy(mqttAction => mqttAction.Order).Select(mqttAction => new CreateAppActionMqttActionSaveViewModel
-                    {
-                        AppActionMqttActionId = mqttAction.Id,
-                        Order = mqttAction.Order,
-                        MqttAction = new MqttActionMinimalViewModel
-                        { 
-                            Id = mqttAction.MqttAction.Id,
-                            Name = mqttAction.MqttAction.Name,
-                        },
-                    })
-                }))!;
+                var appAction = await _appActionService.GetAppAction<CreateAppActionMqttActionSaveViewModel, MqttActionMinimalViewModel>(id);
 
                 AppActionSave.Id = id;
                 AppActionSave.Name = appAction.Name;
+                AppActionSave.OriginalName = appAction.Name;
 
                 AppActionSave.MqttActions.Clear();
                 foreach (var item in appAction.MqttActions)
@@ -152,65 +135,35 @@ namespace MqttPub.ViewModels.AppActionModels.Create
                 return;
             }
 
-            AppActionEntity appAction;
-
-            if (AppActionSave.Id.HasValue)
-            {
-                appAction = (await _appActionRepository.GetByIdAsync(AppActionSave.Id.Value, false))!;
-
-                if (appAction.Name != AppActionSave.Name)
-                {
-                    if (!await Shell.Current.CurrentPage.DisplayAlert("Name changed", "Changing the name may cause other apps remove the action", "Ok", "Cancel"))
-                    {
-                        return;
-                    }
-                }
-
-                appAction.Name = AppActionSave.Name!;
-                appAction.MqttActions = AppActionSave.MqttActions.Select(x => new AppActionMqttAction
-                {
-                    Id = x.AppActionMqttActionId,
-                    Order = x.Order,
-                    MqttActionId = x.MqttAction.Id,
-                    AppActionId = appAction.Id,
-                }).ToList();
-            }
-            else
-            {
-                appAction = new()
-                {
-                    Name = AppActionSave.Name!,
-                };
-
-                appAction.MqttActions = AppActionSave.MqttActions.Select(x => new AppActionMqttAction
-                {
-                    Id = x.AppActionMqttActionId,
-                    Order = x.Order,
-                    MqttActionId = x.MqttAction.Id,
-                    AppActionId = appAction.Id,
-                }).ToList();
-            }
-
-            _appActionRepository.Update(appAction);
-
             try
             {
-                await _appActionRepository.SaveChangesAsync();
-
-                var actions = (await _appActionRepository.WhereSelectAsNoTrackingAsync(x => true, x => new
+                if (AppActionSave.Id.HasValue)
                 {
-                    Id = x.Id.ToString(),
-                    Title = x.Name,
-                })).Select(x => new AppAction(x.Id , x.Title));
+                    if (AppActionSave.OriginalName != AppActionSave.Name)
+                    {
+                        if (!await Shell.Current.CurrentPage.DisplayAlertAsync("Name changed", "Changing the name may cause other apps remove the action", "Ok", "Cancel"))
+                        {
+                            return;
+                        }
+                    }
+
+                    await _appActionService.Update(AppActionSave);
+                }
+                else
+                {
+                    await _appActionService.Create(AppActionSave);
+                }
+
+                var actions = (await _appActionService.ListAppActions<AppActionItemModel>()).Select(x => new AppAction(x.Id.ToString(), x.Name));
 
                 await AppActions.SetAsync(actions);
 
-                await Shell.Current.CurrentPage.DisplayAlert("Success!", $"The AppAction {appAction.Name} was {(AppActionSave.Id.HasValue ? "updated" : "created")}", "Ok");
+                await Shell.Current.CurrentPage.DisplayAlertAsync("Success!", $"The AppAction {AppActionSave.Name} was {(AppActionSave.Id.HasValue ? "updated" : "created")}", "Ok");
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
-                await Shell.Current.CurrentPage.DisplayAlert("Error!", ex.Message, "Ok");
+                await Shell.Current.CurrentPage.DisplayAlertAsync("Error!", ex.Message, "Ok");
             }
         }
     }

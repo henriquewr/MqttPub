@@ -1,10 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MqttPub.Application.Services.AppActions.Abstractions.ContractModels;
 using System.Collections.ObjectModel;
 
 namespace MqttPub.ViewModels.AppActionModels.Create
 {
-    public partial class CreateAppActionSaveViewModel : ObservableObject
+    public partial class CreateAppActionSaveViewModel : ObservableObject, ICreateAppActionModel, IUpdateAppActionModel
     {
+        public string? OriginalName { get; set; }
+
         [ObservableProperty]
         public partial int? Id { get; set; }
 
@@ -21,5 +24,11 @@ namespace MqttPub.ViewModels.AppActionModels.Create
 
             return isValid;
         }
+
+        int IUpdateAppActionModel.Id => Id!.Value;
+        string ISaveAppActionModel<IUpdateAppActionMqttAction>.Name => Name!;
+        string ISaveAppActionModel<ICreateAppActionMqttAction>.Name => Name!;
+        IEnumerable<IUpdateAppActionMqttAction> ISaveAppActionModel<IUpdateAppActionMqttAction>.MqttActions => MqttActions;
+        IEnumerable<ICreateAppActionMqttAction> ISaveAppActionModel<ICreateAppActionMqttAction>.MqttActions => MqttActions;
     }
 }

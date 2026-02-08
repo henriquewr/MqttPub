@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MqttPub.Data;
-using MqttPub.Data.Entities;
+using MqttPub.Application.Services.MqttActions.Abstractions;
 using MqttPub.Pages.MqttAction;
 using MqttPub.ViewModels.MqttConnectionModels;
 using System.Collections.ObjectModel;
@@ -13,11 +12,11 @@ namespace MqttPub.ViewModels.MqttActionModels.List
         [ObservableProperty]
         public partial ObservableCollection<ListMqttActionItemViewModel> MqttActions { get; set; } = null!;
 
-        private readonly IRepository<MqttAction> _mqttActionRepository;
+        private readonly IMqttActionService _mqttActionService;
 
-        public ListMqttActionViewModel(IRepository<MqttAction> mqttActionRepository)
+        public ListMqttActionViewModel(IMqttActionService mqttActionService)
         {
-            _mqttActionRepository = mqttActionRepository;
+            _mqttActionService = mqttActionService;
         }
 
         public async Task Initialize()
@@ -29,17 +28,7 @@ namespace MqttPub.ViewModels.MqttActionModels.List
                     Shell.Current.CurrentPage.IsBusy = true;
                 });
 
-                var mqttActions = await _mqttActionRepository.WhereSelectAsNoTrackingAsync(x => true, x => new ListMqttActionItemViewModel
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    MqttConnection = new MqttConnectionViewModel
-                    { 
-                        Id = x.MqttConnectionId, 
-                        BrokerAddress = x.MqttConnection.BrokerAddress,
-                        Topic = x.MqttConnection.Topic,
-                    },
-                });
+                var mqttActions = await _mqttActionService.ListMqttActions<ListMqttActionItemViewModel, MqttConnectionViewModel>();
 
                 MqttActions = new(mqttActions);
             }

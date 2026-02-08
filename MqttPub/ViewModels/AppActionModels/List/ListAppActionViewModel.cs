@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MqttPub.Data;
-using MqttPub.Data.Entities;
+using MqttPub.Application.Services.AppActions.Abstractions;
 using MqttPub.Pages.AppAction;
 using System.Collections.ObjectModel;
 
@@ -12,11 +11,11 @@ namespace MqttPub.ViewModels.AppActionModels.List
         [ObservableProperty]
         public partial ObservableCollection<ListAppActionItemViewModel> AppActions { get; set; } = null!;
 
-        private readonly IRepository<AppActionEntity> _appActionRepository;
+        private readonly IAppActionService _appActionService;
 
-        public ListAppActionViewModel(IRepository<AppActionEntity> appActionRepository)
+        public ListAppActionViewModel(IAppActionService appActionService)
         {
-            _appActionRepository = appActionRepository;
+            _appActionService = appActionService;
         }
 
         public async Task Initialize()
@@ -28,11 +27,7 @@ namespace MqttPub.ViewModels.AppActionModels.List
                     Shell.Current.CurrentPage.IsBusy = true;
                 });
 
-                var appActions = await _appActionRepository.WhereSelectAsNoTrackingAsync(x => true, x => new ListAppActionItemViewModel
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                });
+                var appActions = await _appActionService.ListAppActions<ListAppActionItemViewModel>();
 
                 AppActions = new(appActions);
             }

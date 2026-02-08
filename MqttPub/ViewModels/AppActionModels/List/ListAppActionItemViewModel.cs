@@ -1,15 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MqttPub.Application.Services.AppActions.Abstractions.ContractModels;
 
 namespace MqttPub.ViewModels.AppActionModels.List
 {
-    public partial class ListAppActionItemViewModel : ObservableObject
+    public partial class ListAppActionItemViewModel : ObservableObject, IAppActionItemModel
     {
         [ObservableProperty]
-        public required partial int Id { get; set; }
+        public partial int Id { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DisplayName))]
-        public required partial string Name { get; set; }
+        public partial string Name { get; set; }
 
         public string DisplayName => Name;
     }

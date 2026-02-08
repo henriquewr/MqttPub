@@ -2,11 +2,16 @@
 using Android.Content.PM;
 using Android.OS;
 
-namespace MqttPub
+namespace MqttPub.Platforms.Android
 {
-    [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+    [Activity(Theme = "@style/Maui.SplashTheme",
+        MainLauncher = true,
+        Exported = true,
+        LaunchMode = LaunchMode.SingleTop, 
+        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+
     [IntentFilter(new[] { Platform.Intent.ActionAppAction },
-              Categories = new[] { Android.Content.Intent.CategoryDefault })]
+              Categories = new[] { global::Android.Content.Intent.CategoryDefault })]
     public class MainActivity : MauiAppCompatActivity
     {
         protected override void OnResume()
@@ -16,7 +21,7 @@ namespace MqttPub
             Platform.OnResume(this);
         }
 
-        protected override void OnNewIntent(Android.Content.Intent? intent)
+        protected override void OnNewIntent(global::Android.Content.Intent? intent)
         {
             base.OnNewIntent(intent);
 

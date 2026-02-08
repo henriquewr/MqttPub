@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace MqttPub
+namespace MqttPub.Platforms.iOS
 {
     public class Program
     {

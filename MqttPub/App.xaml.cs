@@ -8,7 +8,7 @@ using MqttPub.Pages.AppAction;
 
 namespace MqttPub
 {
-    public partial class App : Application
+    public partial class App : Microsoft.Maui.Controls.Application
     {
         public App()
         {
